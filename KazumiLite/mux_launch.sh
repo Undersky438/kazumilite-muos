@@ -56,7 +56,17 @@ if [ -f "$CONTROL_DIR/mod_${CFW_NAME}.txt" ]; then
 fi
 
 export LD_LIBRARY_PATH="$CONTROL_DIR/libs:$CONTROL_DIR/utils/lib:${LD_LIBRARY_PATH:-}"
-export PYTHONPATH="$DATA_DIR:$CONTROL_DIR/exlibs:$CONTROL_DIR/pylibs:$CONTROL_DIR/libs:${PYTHONPATH:-}"
+
+# PortMaster may keep its Python packages either extracted or inside
+# pylibs.zip. Python's zip importer accepts paths to directories in the ZIP.
+PYTHON_PATHS="$DATA_DIR"
+[ -d "$CONTROL_DIR/exlibs" ] && PYTHON_PATHS="$PYTHON_PATHS:$CONTROL_DIR/exlibs"
+[ -d "$CONTROL_DIR/pylibs" ] && PYTHON_PATHS="$PYTHON_PATHS:$CONTROL_DIR/pylibs"
+if [ -f "$CONTROL_DIR/pylibs.zip" ]; then
+  PYTHON_PATHS="$PYTHON_PATHS:$CONTROL_DIR/pylibs.zip/exlibs:$CONTROL_DIR/pylibs.zip/pylibs"
+fi
+PYTHON_PATHS="$PYTHON_PATHS:$CONTROL_DIR/libs"
+export PYTHONPATH="$PYTHON_PATHS${PYTHONPATH:+:$PYTHONPATH}"
 export PYSDL2_DLL_PATH="$CONTROL_DIR/libs"
 export XDG_DATA_DIRS="$APP_DIR:$CONTROL_DIR:${XDG_DATA_DIRS:-}"
 export KAZUMI_LITE_CONTROL_DIR="$CONTROL_DIR"
@@ -64,6 +74,7 @@ export KAZUMI_LITE_CONTROL_DIR="$CONTROL_DIR"
 cd "$DATA_DIR" || exit 21
 echo "[KazumiLite] runtime: $CONTROL_DIR"
 echo "[KazumiLite] cfw: ${CFW_NAME:-unknown}"
+echo "[KazumiLite] pythonpath: $PYTHONPATH"
 
 python3 -u "$DATA_DIR/app.py"
 RESULT=$?
