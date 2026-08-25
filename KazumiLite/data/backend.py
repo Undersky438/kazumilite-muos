@@ -13,7 +13,7 @@ import urllib.request
 from http.cookiejar import CookieJar
 
 
-USER_AGENT = "KazumiLite-muOS/0.2"
+USER_AGENT = "KazumiLite-muOS/0.2.3-r1"
 XIFAN_API = "https://rzmsnqblptbceicadbyd.supabase.co"
 XIFAN_KEY = "sb_publishable_aCb7uwyLN6H-sMjze4dRGA_2MDuROLF"
 AGE_BASE = "https://www.agedm.io"

@@ -9,6 +9,7 @@ KazumiLite/data/state.json
 KazumiLite/data/log.txt
 KazumiLite/data/mpv.log
 KazumiLite/data/diagnostics.txt
+KazumiLite/data/state-*.tmp
 
 # Build and release artifacts
 output/
