@@ -38,6 +38,8 @@ class KazumiLiteApp(PinyinMixin, RenderMixin, PlayerMixin):
         self.status_kind = "good"
         self.controller = None
         self.joystick = None
+        self.window = None
+        self.renderer = None
         self.action_times = {}
         self.input_blocked_until = 0.0
         self.axis_x = 0
@@ -70,28 +72,11 @@ class KazumiLiteApp(PinyinMixin, RenderMixin, PlayerMixin):
         self.busy_message = ""
 
         SDL_SetHint(b"SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS", b"1")
-        if SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER) != 0:
+        if SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER) != 0:
             raise RuntimeError(self.sdl_error("SDL 初始化失败"))
         if ttf.TTF_Init() != 0:
             raise RuntimeError(self.sdl_error("SDL_ttf 初始化失败"))
-
-        self.window = SDL_CreateWindow(
-            "Kazumi Lite".encode("utf-8"),
-            SDL_WINDOWPOS_CENTERED,
-            SDL_WINDOWPOS_CENTERED,
-            self.width,
-            self.height,
-            SDL_WINDOW_SHOWN,
-        )
-        if not self.window:
-            raise RuntimeError(self.sdl_error("窗口创建失败"))
-        flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
-        self.renderer = SDL_CreateRenderer(self.window, -1, flags)
-        if not self.renderer:
-            self.renderer = SDL_CreateRenderer(self.window, -1, SDL_RENDERER_SOFTWARE)
-        if not self.renderer:
-            raise RuntimeError(self.sdl_error("渲染器创建失败"))
-        SDL_SetRenderDrawBlendMode(self.renderer, SDL_BLENDMODE_BLEND)
+        self.create_video_output()
 
         if not os.path.isfile(FONT_PATH):
             raise RuntimeError(f"中文字体缺失：{FONT_PATH}")
@@ -109,13 +94,65 @@ class KazumiLiteApp(PinyinMixin, RenderMixin, PlayerMixin):
             else:
                 self.joystick = SDL_JoystickOpen(0)
                 print("Input: raw joystick", flush=True)
-        SDL_StartTextInput()
 
         self.start_job(
             "正在更新热门番剧……",
             self.catalog_client.popular,
             self.catalog_loaded,
         )
+
+    def create_video_output(self):
+        """Create the SDL video resources used by the application UI."""
+        if SDL_InitSubSystem(SDL_INIT_VIDEO) != 0:
+            raise RuntimeError(self.sdl_error("SDL 视频子系统初始化失败"))
+        window = SDL_CreateWindow(
+            "Kazumi Lite".encode("utf-8"),
+            SDL_WINDOWPOS_CENTERED,
+            SDL_WINDOWPOS_CENTERED,
+            self.width,
+            self.height,
+            SDL_WINDOW_SHOWN,
+        )
+        if not window:
+            SDL_QuitSubSystem(SDL_INIT_VIDEO)
+            raise RuntimeError(self.sdl_error("窗口创建失败"))
+        flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
+        renderer = SDL_CreateRenderer(window, -1, flags)
+        if not renderer:
+            renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE)
+        if not renderer:
+            SDL_DestroyWindow(window)
+            SDL_QuitSubSystem(SDL_INIT_VIDEO)
+            raise RuntimeError(self.sdl_error("渲染器创建失败"))
+        self.window = window
+        self.renderer = renderer
+        SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND)
+        SDL_StartTextInput()
+
+    def release_video_output(self):
+        """Release KMS/DRM ownership before starting an external player."""
+        SDL_StopTextInput()
+        if self.renderer:
+            SDL_DestroyRenderer(self.renderer)
+            self.renderer = None
+        if self.window:
+            SDL_DestroyWindow(self.window)
+            self.window = None
+        SDL_QuitSubSystem(SDL_INIT_VIDEO)
+        print("[display] SDL video released", flush=True)
+
+    def restore_video_output(self):
+        """Reclaim the display after MPV has closed and replace stale buffers."""
+        SDL_Delay(120)
+        self.create_video_output()
+        driver = SDL_GetCurrentVideoDriver()
+        driver_name = driver.decode("utf-8", "replace") if driver else "unknown"
+        print(f"[display] SDL video restored: {driver_name}", flush=True)
+        SDL_FlushEvents(SDL_FIRSTEVENT, SDL_LASTEVENT)
+        for _ in range(12):
+            self.render()
+            SDL_PumpEvents()
+            SDL_Delay(18)
 
     def px(self, value):
         return max(1, int(round(value * self.scale)))
@@ -633,7 +670,8 @@ class KazumiLiteApp(PinyinMixin, RenderMixin, PlayerMixin):
             SDL_Delay(16)
 
     def cleanup(self):
-        SDL_StopTextInput()
+        if self.window:
+            SDL_StopTextInput()
         if self.controller:
             SDL_GameControllerClose(self.controller)
         if self.joystick:

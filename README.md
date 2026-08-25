@@ -17,7 +17,7 @@ RG35XX Pro、muOS 2601.x Jacaranda 和 640×480 屏幕。
 - 480p 优先的掌机播放设置
 - 完整手柄操作，不依赖触摸屏或外接键盘
 - 运行环境检查、启动日志和 MPV 播放日志
-- 播放器退出后的画面清理，减少返回菜单时的残留画面
+- 播放前释放 SDL 显示，返回时重建窗口并清理残留画面
 
 ## 运行环境
 
@@ -91,11 +91,13 @@ MUOS/application/KazumiLite/data/
 源码主要使用 Python 标准库和 PortMaster 提供的运行时依赖。Windows 下可使用：
 
 ```powershell
-./build.ps1 -Version 0.2.3-r2
+./build.ps1 -Version 0.2.3-r3
 ```
 
 生成的安装包位于 `output/`。不要把 `data/state.json`、日志、缓存、
 `__pycache__` 或个人测试文件提交到仓库。
+
+各版本的变更记录见 [CHANGELOG.md](CHANGELOG.md)。
 
 ### 源码结构
 

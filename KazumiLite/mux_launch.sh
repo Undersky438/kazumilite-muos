@@ -42,7 +42,7 @@ exec >> "$LOG_FILE" 2>&1
 echo "[KazumiLite] start: $(date)"
 echo "[KazumiLite] app: $APP_DIR"
 echo "[KazumiLite] screen: ${APP_SCREEN_WIDTH}x${APP_SCREEN_HEIGHT}"
-echo "[KazumiLite] version: 0.2.3-r2"
+echo "[KazumiLite] version: 0.2.3-r3"
 
 if [ -z "$CONTROL_DIR" ] || [ ! -f "$CONTROL_DIR/control.txt" ]; then
   echo "[KazumiLite] PortMaster runtime not found; exiting safely."

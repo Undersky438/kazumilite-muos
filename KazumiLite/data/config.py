@@ -9,7 +9,7 @@ STATE_PATH = os.path.join(SCRIPT_DIR, "state.json")
 MPV_LOG_PATH = os.path.join(SCRIPT_DIR, "mpv.log")
 DIAG_PATH = os.path.join(SCRIPT_DIR, "diagnostics.txt")
 PINYIN_PATH = os.path.join(SCRIPT_DIR, "pinyin_words.tsv")
-APP_VERSION = "0.2.3-r2"
+APP_VERSION = "0.2.3-r3"
 KEYBOARD = "1234567890qwertyuiopasdfghjkl-zxcvbnm._?"
 
 XIFAN_API = "https://rzmsnqblptbceicadbyd.supabase.co"

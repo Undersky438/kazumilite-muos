@@ -214,57 +214,53 @@ class PlayerMixin:
         self.status = f"正在播放 {episode['label']}（{playback['quality']}）"
         self.status_kind = "good"
         self.render()
-        # Keep the SDL window alive under MPV. Hiding it lets muOS or stale
-        # video buffers show through while MPV hands the display back.
         SDL_Delay(80)
-        result = self.run_mpv(
-            mpv, playback["url"], episode, resume, playback["quality"]
-        )
-        should_fallback = (
-            playback.get("fallback_url")
-            and not result["user_quit"]
-            and (result["code"] != 0 or (result["position"] < 1 and result["elapsed"] < 10))
-        )
-        if should_fallback:
-            print("[playback] HLS failed; trying MP4 fallback", flush=True)
+        # SDL and MPV both use the DRM/KMS display on muOS. Fully release the
+        # SDL video subsystem so MPV cannot leave its buffers in SDL's swapchain.
+        self.release_video_output()
+        try:
             result = self.run_mpv(
-                mpv,
-                playback["fallback_url"],
-                episode,
-                resume,
-                "MP4 备用",
+                mpv, playback["url"], episode, resume, playback["quality"]
             )
-        if result["position"] > 0.5:
-            try:
-                self.store.record_playback(
-                    anime["id"],
-                    anime.get("title") or "未命名",
-                    episode["id"],
-                    episode["label"],
-                    result["position"],
-                    result["duration"],
+            should_fallback = (
+                playback.get("fallback_url")
+                and not result["user_quit"]
+                and (
+                    result["code"] != 0
+                    or (result["position"] < 1 and result["elapsed"] < 10)
                 )
-            except OSError as exc:
-                print(f"History save failed: {exc}", flush=True)
-        if result["user_quit"] or result["code"] == 0:
-            self.status = f"已返回：{episode['label']}"
-            self.status_kind = "good"
-        else:
-            self.status = f"播放失败，MPV 错误码 {result['code']}；请查看 mpv.log。"
-            self.status_kind = "bad"
-        SDL_ShowWindow(self.window)
-        SDL_SetWindowSize(self.window, self.width, self.height)
-        SDL_SetWindowPosition(
-            self.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED
-        )
-        SDL_RaiseWindow(self.window)
-        SDL_FlushEvents(SDL_FIRSTEVENT, SDL_LASTEVENT)
-        # KMS/DRM commonly rotates through more than one framebuffer. Repaint
-        # each one before accepting input so the last video frame cannot flash.
-        for _ in range(3):
-            self.render()
-            SDL_Delay(18)
-        self.input_blocked_until = time.monotonic() + 0.3
+            )
+            if should_fallback:
+                print("[playback] HLS failed; trying MP4 fallback", flush=True)
+                result = self.run_mpv(
+                    mpv,
+                    playback["fallback_url"],
+                    episode,
+                    resume,
+                    "MP4 备用",
+                )
+            if result["position"] > 0.5:
+                try:
+                    self.store.record_playback(
+                        anime["id"],
+                        anime.get("title") or "未命名",
+                        episode["id"],
+                        episode["label"],
+                        result["position"],
+                        result["duration"],
+                    )
+                except OSError as exc:
+                    print(f"History save failed: {exc}", flush=True)
+            if result["user_quit"] or result["code"] == 0:
+                self.status = f"已返回：{episode['label']}"
+                self.status_kind = "good"
+            else:
+                self.status = (
+                    f"播放失败，MPV 错误码 {result['code']}；请查看 mpv.log。"
+                )
+        finally:
+            self.restore_video_output()
+        self.input_blocked_until = time.monotonic() + 0.45
 
     def collect_diagnostics(self):
         mpv = self.find_mpv()

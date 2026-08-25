@@ -3,7 +3,7 @@
 [返回项目主页](../README.md)
 
 这份文档面向希望修改界面、按键、输入法、数据源或播放器行为的贡献者。
-它描述的是 `0.2.3-r2` 的实际代码结构。开始修改前，建议先运行现有测试，
+它描述的是 `0.2.3-r3` 的实际代码结构。开始修改前，建议先运行现有测试，
 并保留一份能在掌机上正常启动的安装包用于回退。
 
 ## 先了解运行边界
@@ -28,7 +28,7 @@ flowchart LR
 有三条兼容底线：
 
 - `mux_launch.sh` 必须保持 LF 换行，不能变成 Windows CRLF。
-- 播放结束后的多次重绘和输入冷却用于清理 DRM/framebuffer 残留，不要随意删除。
+- 播放前释放 SDL 视频子系统、返回后重建窗口并连续重绘，用于避免 MPV 与应用争用显示缓冲。
 - 收藏、历史和日志必须继续写入应用自己的 `data/`，不要写系统分区。
 
 ## 目录结构
@@ -230,7 +230,7 @@ URL 或整数判断。
 - 列表行数和 `visible_count()` 是否一致。
 - 底部提示是否覆盖列表。
 - 候选字被选中后是否始终出现在可见窗口。
-- MPV 返回后连续三次重绘是否仍保留。
+- MPV 返回后重建 SDL 窗口和连续重绘是否仍保留。
 
 不要在 `render_*()` 中发网络请求或写状态；绘制函数会在主循环中频繁调用。
 
@@ -277,8 +277,8 @@ def tr(language, key):
 
 - IPC socket 的清理和进程兜底终止。
 - HLS 失败后的 MP4 回退条件。
-- `SDL_ShowWindow()`、窗口尺寸/位置恢复和事件清空。
-- 返回后连续重绘 framebuffer。
+- `release_video_output()` 在启动 MPV 前销毁 SDL renderer/window 并释放视频子系统。
+- `restore_video_output()` 在 MPV 退出后重建窗口、清空事件并连续重绘 framebuffer。
 - `input_blocked_until`，防止退出播放器的按键继续作用到应用。
 
 改播放器参数后要在真机测试正常播放、主动退出、播放失败、HLS 回退和断点续播。
@@ -294,7 +294,7 @@ python -m unittest discover -s tests -v
 生成安装包：
 
 ```powershell
-./build.ps1 -Version 0.2.3-r2
+./build.ps1 -Version 0.2.3-r3
 ```
 
 构建脚本会排除 `__pycache__`、`.pyc`、日志、诊断文件和 `state.json`。新增运行时生成文件后，
