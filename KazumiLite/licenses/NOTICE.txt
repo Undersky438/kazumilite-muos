@@ -1,0 +1,14 @@
+Kazumi Lite 0.2.0
+
+This is an unofficial muOS client. It is not an official Predidit/Kazumi
+build and does not include Kazumi's copyrighted application icon.
+
+The compatible rule data contract is based on KazumiRules, distributed under
+the MIT License. A copy is included as KazumiRules-MIT.txt:
+https://github.com/Predidit/KazumiRules
+
+The bundled font is Source Han Sans / Source Sans family font software from
+Adobe, redistributed under the SIL Open Font License 1.1. A copy of the
+license is included as OFL-1.1.txt.
+
+The application does not provide, upload, or store video content.

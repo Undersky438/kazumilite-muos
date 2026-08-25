@@ -1,0 +1,27 @@
+# Python bytecode and local tooling caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+
+# KazumiLite runtime data (created on the handheld)
+KazumiLite/data/state.json
+KazumiLite/data/log.txt
+KazumiLite/data/mpv.log
+KazumiLite/data/diagnostics.txt
+
+# Build and release artifacts
+output/
+*.muxapp
+
+# Local editor and operating-system files
+.vscode/
+.idea/
+.vs/
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+*.swp

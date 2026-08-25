@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#252e42"/>
+      <stop offset="1" stop-color="#0e1118"/>
+    </linearGradient>
+    <linearGradient id="play" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff748b"/>
+      <stop offset="1" stop-color="#ffad8f"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="480" rx="36" fill="url(#bg)"/>
+  <circle cx="320" cy="198" r="126" fill="#222b3e" stroke="#70d6c2" stroke-width="14"/>
+  <path d="M288 134 L288 262 L396 198 Z" fill="url(#play)"/>
+  <text x="320" y="370" text-anchor="middle" fill="#f4f6fb" font-family="sans-serif" font-size="45" font-weight="700">Kazumi Lite</text>
+  <text x="320" y="410" text-anchor="middle" fill="#70d6c2" font-family="sans-serif" font-size="22">Jacaranda Safe Prototype</text>
+</svg>
