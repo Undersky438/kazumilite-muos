@@ -1,4 +1,4 @@
-KazumiLite-muOS 0.2.3-r1
+KazumiLite-muOS 0.2.3-r2
 
 This is an unofficial muOS client. It is not an official Predidit/Kazumi
 build and does not include Kazumi's copyrighted application icon.

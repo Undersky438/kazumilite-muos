@@ -91,11 +91,32 @@ MUOS/application/KazumiLite/data/
 源码主要使用 Python 标准库和 PortMaster 提供的运行时依赖。Windows 下可使用：
 
 ```powershell
-./build.ps1 -Version 0.2.3-r1
+./build.ps1 -Version 0.2.3-r2
 ```
 
 生成的安装包位于 `output/`。不要把 `data/state.json`、日志、缓存、
 `__pycache__` 或个人测试文件提交到仓库。
+
+### 源码结构
+
+```text
+KazumiLite/data/
+├─ app.py          # 应用入口、页面状态和手柄事件
+├─ ui.py           # SDL 界面绘制
+├─ ime.py          # 拼音输入和候选栏
+├─ player.py       # MPV 播放与运行环境检查
+├─ sources.py      # 番剧目录、搜索和播放线路适配
+├─ http_client.py  # HTTP 请求与错误处理
+├─ state_store.py  # 收藏、历史和搜索记录
+├─ config.py       # 共享路径、版本及界面常量
+└─ backend.py      # 兼容旧导入路径的公共入口
+```
+
+不联网的基础测试可以使用：
+
+```powershell
+python -m unittest discover -s tests -v
+```
 
 ## 外部服务与安全边界
 
